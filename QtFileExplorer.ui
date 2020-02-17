@@ -21,7 +21,12 @@
        <widget class="QTreeWidget" name="leftTreeWidget">
         <column>
          <property name="text">
-          <string notr="true">1</string>
+          <string>1</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string notr="true">路徑</string>
          </property>
         </column>
        </widget>
