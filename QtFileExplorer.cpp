@@ -11,11 +11,19 @@
 #include <qtreewidget.h>
 #include <map>
 
+struct Item
+{
+    enum
+    {
+        PATH = 0,
+        NAME = 1,
+        SIZE = 2
+    };
+};
+
 struct QtFileExplorer::Impl
 {
     Ui::QtFileExplorerClass ui;
-    std::map<QTreeWidgetItem*, QFileInfo> itemMap;
-    QString current;
 };
 
 QtFileExplorer::QtFileExplorer(QWidget *parent)
@@ -25,11 +33,13 @@ QtFileExplorer::QtFileExplorer(QWidget *parent)
     auto& ui = impl->ui;
     ui.setupUi(this);
 
-    ui.rightTreeWidget->setColumnWidth(1, 150);
+    ui.rightTreeWidget->setColumnWidth(Item::SIZE, 150);
+
+    ui.rightTreeWidget->setColumnHidden(Item::PATH, true);
 
     auto header = ui.rightTreeWidget->header();
-    header->setSectionResizeMode(0, QHeaderView::Stretch);
-    header->setSectionResizeMode(1, QHeaderView::Fixed);
+    header->setSectionResizeMode(Item::NAME, QHeaderView::Stretch);
+    header->setSectionResizeMode(Item::SIZE, QHeaderView::Fixed);
     header->setStretchLastSection(false);
 
     enter("D:/");
@@ -41,13 +51,12 @@ QtFileExplorer::QtFileExplorer(QWidget *parent)
 void QtFileExplorer::enter(const QString& _path)
 {
     qDebug() << _path;
-    impl->current = _path;
     auto& ui = impl->ui;
     ui.rightTreeWidget->clear();
-    impl->itemMap.clear();
 
     auto item = new QTreeWidgetItem(ui.rightTreeWidget);
-    item->setText(0, "..");
+    item->setText(Item::NAME, "..");
+    item->setText(Item::PATH, _path);
 
     QString path(_path);
     QDirIterator iter(path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
@@ -56,34 +65,30 @@ void QtFileExplorer::enter(const QString& _path)
         auto& str = iter.next();
         QFileInfo fileInfo(iter.fileInfo());
         auto item = new QTreeWidgetItem(ui.rightTreeWidget);
-        item->setText(0, iter.fileName());
+        item->setText(Item::PATH, fileInfo.absoluteFilePath());
+        item->setText(Item::NAME, iter.fileName());
         if (fileInfo.isFile())
         {
-            item->setText(1, QString::number(fileInfo.size()));
+            item->setText(Item::SIZE, QString::number(fileInfo.size()));
         }
-        impl->itemMap[item] = fileInfo;
     }
 }
 
 void QtFileExplorer::on_itemDoubleClicked(QTreeWidgetItem* item, int column)
 {
-    qDebug() << item->text(0);
+    qDebug() << item->text(Item::NAME);
 
-    if (item->text(0) == "..")
+    QFileInfo fileInfo(item->text(Item::PATH));
+
+    if (item->text(Item::NAME) == "..")
     {
-        enter(QFileInfo(impl->current).absolutePath());
+        enter(fileInfo.absolutePath());
         return;
     }
 
-    auto& iter = impl->itemMap.find(item);
-    if (iter != impl->itemMap.end())
+    if (fileInfo.isDir())
     {
-        auto& fileInfo = iter->second;
-        if (fileInfo.isDir())
-        {
-            qDebug() << iter->second.filePath();
-            enter(fileInfo.filePath());
-        }
+        enter(fileInfo.absoluteFilePath());
     }
 }
 

@@ -30,6 +30,11 @@
        <widget class="QTreeWidget" name="rightTreeWidget">
         <column>
          <property name="text">
+          <string>路徑</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
           <string>名稱</string>
          </property>
         </column>
