@@ -10,7 +10,12 @@ class QtFileExplorer : public QMainWindow
 public:
     QtFileExplorer(QWidget *parent = Q_NULLPTR);
 
+private slots:
+    void on_itemDoubleClicked(QTreeWidgetItem* item, int column);
+
 private:
     struct Impl;
     std::shared_ptr<Impl> impl;
+
+    void enter(const QString& path);
 };
